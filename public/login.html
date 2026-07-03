@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Don't Troll - Login</title>
+    <meta name="description" content="Login or create a new account to play Don't Troll, the ultimate troll platformer game.">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        :root {
+            --bg-dark: #2a1810;
+            --bg-darker: #1a0f08;
+            --bg-card: #3d2416;
+            --bg-card-light: #4a2c1a;
+            --border-pixel: #5c3a22;
+            --border-light: #8b5e3c;
+            --orange-primary: #e67e22;
+            --orange-light: #f39c12;
+            --orange-glow: #d35400;
+            --orange-dark: #a04000;
+            --brown-text: #d4a574;
+            --brown-muted: #a08060;
+            --cream: #f5e6d3;
+            --red-devil: #c0392b;
+            --red-dark: #8b0000;
+            --pixel-shadow: 4px 4px 0px #1a0f08;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            image-rendering: pixelated;
+        }
+
+        body {
+            font-family: 'VT323', monospace;
+            background: var(--bg-darker);
+            color: var(--cream);
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Pixel Grid Background */
+        .pixel-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            opacity: 0.12;
+            background-image:
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(230,126,34,0.15) 2px, rgba(230,126,34,0.15) 4px),
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(230,126,34,0.15) 2px, rgba(230,126,34,0.15) 4px);
+            pointer-events: none;
+        }
+
+        /* Floating Pixel World */
+        .pixel-world {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .pixel-block {
+            position: absolute;
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, var(--orange-primary), var(--orange-dark));
+            border: 3px solid var(--bg-darker);
+            box-shadow: inset -4px -4px 0 rgba(0,0,0,0.3), inset 4px 4px 0 rgba(255,255,255,0.1);
+            animation: float-block 6s ease-in-out infinite;
+        }
+
+        .pixel-block::after {
+            content: '';
+            position: absolute;
+            top: 4px; left: 4px;
+            width: 8px; height: 8px;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .pixel-block.spike {
+            background: var(--red-devil);
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            border: none; box-shadow: none;
+            width: 24px; height: 24px;
+        }
+
+        .pixel-block.coin {
+            background: var(--orange-light);
+            border-radius: 50%;
+            border: 3px solid var(--orange-dark);
+            width: 22px; height: 22px;
+            box-shadow: 0 0 12px var(--orange-light);
+            animation: coin-bounce 3s ease-in-out infinite;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .pixel-block.coin::after {
+            content: '$';
+            font-family: 'Press Start 2P', cursive;
+            font-size: 9px;
+            color: var(--bg-darker);
+            background: none;
+            width: auto; height: auto;
+            top: auto; left: auto;
+            position: static;
+        }
+
+        @keyframes float-block {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            25%  { transform: translateY(-20px) translateX(10px); }
+            50%  { transform: translateY(-10px) translateX(-5px); }
+            75%  { transform: translateY(-30px) translateX(5px); }
+        }
+
+        @keyframes coin-bounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50%  { transform: translateY(-40px) scale(1.1); }
+        }
+
+        /* ── Main Container ── */
+        .auth-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 430px;
+            padding: 24px 16px 40px;
+            margin: auto;
+        }
+
+        /* ── Logo ── */
+        .logo-section {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo-devil {
+            display: inline-flex;
+            align-items: center; justify-content: center;
+            width: 64px; height: 64px;
+            background: linear-gradient(135deg, var(--red-devil), var(--orange-primary));
+            border: 4px solid var(--bg-darker);
+            box-shadow: var(--pixel-shadow);
+            margin-bottom: 12px;
+            position: relative;
+            animation: devil-bob 2s ease-in-out infinite;
+        }
+
+        .logo-devil::before,
+        .logo-devil::after {
+            content: '';
+            position: absolute;
+            top: -12px;
+            width: 12px; height: 16px;
+            background: var(--red-dark);
+            border: 2px solid var(--bg-darker);
+        }
+        .logo-devil::before { left: 8px;  transform: rotate(-15deg); }
+        .logo-devil::after  { right: 8px; transform: rotate(15deg); }
+
+        .logo-devil span { font-size: 28px; }
+
+        @keyframes devil-bob {
+            0%, 100% { transform: translateY(0); }
+            50%       { transform: translateY(-8px); }
+        }
+
+        .logo-text {
+            font-family: 'Press Start 2P', cursive;
+            font-size: clamp(14px, 3.5vw, 22px);
+            color: var(--orange-light);
+            text-shadow: 3px 3px 0 var(--orange-dark), 0 0 20px rgba(243,156,18,0.3);
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+        }
+
+        .logo-sub {
+            font-size: 18px;
+            color: var(--brown-muted);
+        }
+
+        .logo-sub .not {
+            color: var(--red-devil);
+            font-family: 'Press Start 2P', cursive;
+            font-size: 9px;
+            vertical-align: middle;
+            margin: 0 4px;
+        }
+
+        /* Lives */
+        .lives-display {
+            display: flex;
+            align-items: center; gap: 6px;
+            margin: 10px 0 0;
+            justify-content: center;
+        }
+
+        .life-icon {
+            width: 22px; height: 22px;
+            background: var(--red-devil);
+            clip-path: polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+            animation: heartbeat 1.5s ease-in-out infinite;
+            animation-delay: calc(var(--i) * 0.2s);
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50%       { transform: scale(1.15); }
+        }
+
+        .lives-text {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 7px;
+            color: var(--brown-muted);
+            margin-left: 6px;
+        }
+
+        /* ── Auth Card ── */
+        .auth-card {
+            background: var(--bg-card);
+            border: 4px solid var(--border-pixel);
+            box-shadow: var(--pixel-shadow), 0 0 40px rgba(230,126,34,0.08);
+            padding: 28px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Animated scanline top bar */
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: repeating-linear-gradient(90deg,
+                var(--orange-primary) 0px, var(--orange-primary) 8px,
+                var(--orange-dark) 8px, var(--orange-dark) 16px);
+            animation: scan-pixel 1.4s linear infinite;
+        }
+
+        @keyframes scan-pixel {
+            0%   { background-position: 0 0; }
+            100% { background-position: 16px 0; }
+        }
+
+        /* Corner brackets */
+        .corner {
+            position: absolute;
+            width: 14px; height: 14px;
+            border: 4px solid var(--orange-primary);
+        }
+        .corner-tl { top: 6px;    left: 6px;   border-right: none; border-bottom: none; }
+        .corner-tr { top: 6px;    right: 6px;  border-left: none;  border-bottom: none; }
+        .corner-bl { bottom: 6px; left: 6px;   border-right: none; border-top: none; }
+        .corner-br { bottom: 6px; right: 6px;  border-left: none;  border-top: none; }
+
+        /* Trap decoration */
+        .trap-decoration {
+            position: absolute;
+            bottom: -18px; right: 24px;
+            width: 0; height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 20px solid var(--red-devil);
+            opacity: 0.55;
+            animation: trap-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes trap-pulse {
+            0%, 100% { opacity: 0.4; transform: translateY(0); }
+            50%       { opacity: 0.8; transform: translateY(-4px); }
+        }
+
+        /* ── Tabs ── */
+        .tab-switcher {
+            display: flex;
+            margin-bottom: 24px;
+            border: 3px solid var(--border-pixel);
+            background: var(--bg-darker);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 11px;
+            border: none;
+            background: transparent;
+            color: var(--brown-muted);
+            font-family: 'Press Start 2P', cursive;
+            font-size: 9px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: var(--cream);
+            background: rgba(230,126,34,0.1);
+        }
+
+        .tab-btn.active {
+            background: var(--orange-primary);
+            color: var(--bg-darker);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.25);
+        }
+
+        /* ── Form ── */
+        .form-section { display: none; }
+
+        .form-section.active {
+            display: block;
+            animation: pixel-fade 0.25s ease;
+        }
+
+        @keyframes pixel-fade {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 20px;
+            color: var(--brown-text);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--bg-darker);
+            border: 3px solid var(--border-pixel);
+            color: var(--cream);
+            font-family: 'VT323', monospace;
+            font-size: 20px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+            box-shadow: inset 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .form-input:focus {
+            border-color: var(--orange-primary);
+            box-shadow: inset 2px 2px 4px rgba(0,0,0,0.5), 0 0 0 3px rgba(230,126,34,0.2);
+        }
+
+        .form-input::placeholder { color: var(--brown-muted); opacity: 0.6; }
+
+        .form-input.error {
+            border-color: var(--red-devil);
+            animation: input-shake 0.3s ease;
+        }
+
+        @keyframes input-shake {
+            0%,100% { transform: translateX(0); }
+            20%      { transform: translateX(-6px); }
+            40%      { transform: translateX(6px); }
+            60%      { transform: translateX(-4px); }
+            80%      { transform: translateX(4px); }
+        }
+
+        .field-error {
+            font-size: 16px;
+            color: var(--red-devil);
+            margin-top: 4px;
+            display: none;
+        }
+
+        .field-error.visible { display: block; }
+
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 38px;
+            background: none;
+            border: none;
+            color: var(--brown-muted);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px;
+            transition: color 0.2s;
+        }
+
+        .password-toggle:hover { color: var(--orange-light); }
+
+        /* Level / XP bar (signup only) */
+        .level-bar {
+            display: flex;
+            align-items: center; gap: 12px;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: var(--bg-darker);
+            border: 3px solid var(--border-pixel);
+        }
+
+        .level-icon {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, var(--orange-primary), var(--orange-dark));
+            border: 3px solid var(--bg-darker);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 9px; color: white;
+            text-shadow: 1px 1px 0 var(--bg-darker);
+            flex-shrink: 0;
+        }
+
+        .level-info { flex: 1; }
+
+        .level-label {
+            font-size: 16px; color: var(--brown-muted);
+            text-transform: uppercase;
+        }
+
+        .level-progress {
+            margin-top: 6px; height: 10px;
+            background: var(--bg-card);
+            border: 2px solid var(--border-pixel);
+            overflow: hidden;
+        }
+
+        .level-fill {
+            height: 100%; width: 15%;
+            background: repeating-linear-gradient(90deg,
+                var(--orange-primary) 0px, var(--orange-primary) 4px,
+                var(--orange-light) 4px, var(--orange-light) 8px);
+            transition: width 0.6s ease;
+            position: relative;
+        }
+
+        .level-fill::after {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0%   { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .level-value {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 7px; color: var(--orange-light); margin-top: 4px;
+        }
+
+        /* Checkbox */
+        .checkbox-group {
+            display: flex; align-items: center; gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px; height: 20px;
+            accent-color: var(--orange-primary);
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            font-size: 18px; color: var(--brown-muted);
+            cursor: pointer; text-transform: uppercase;
+        }
+
+        .checkbox-group a { color: var(--orange-light); text-decoration: none; }
+
+        /* Submit Button */
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--orange-primary), var(--orange-glow));
+            border: 3px solid var(--bg-darker);
+            color: var(--bg-darker);
+            font-family: 'Press Start 2P', cursive;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: var(--pixel-shadow);
+            margin-top: 4px;
+            position: relative; top: 0;
+        }
+
+        .submit-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px var(--bg-darker), 0 0 24px rgba(230,126,34,0.35);
+            background: linear-gradient(135deg, var(--orange-light), var(--orange-primary));
+        }
+
+        .submit-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px var(--bg-darker);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: var(--pixel-shadow);
+        }
+
+        /* Divider */
+        .divider {
+            display: flex; align-items: center; gap: 12px;
+            margin: 20px 0; color: var(--brown-muted);
+            font-size: 18px; text-transform: uppercase;
+        }
+
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1; height: 3px;
+            background: repeating-linear-gradient(90deg,
+                var(--border-pixel), var(--border-pixel) 4px,
+                transparent 4px, transparent 8px);
+        }
+
+        /* Social Buttons */
+        .social-login {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .social-btn {
+            display: flex;
+            align-items: center; justify-content: center; gap: 8px;
+            padding: 11px;
+            background: var(--bg-darker);
+            border: 3px solid var(--border-pixel);
+            color: var(--brown-text);
+            font-family: 'VT323', monospace;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-transform: uppercase;
+        }
+
+        .social-btn:hover {
+            border-color: var(--orange-primary);
+            color: var(--orange-light);
+            background: var(--bg-card);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(230,126,34,0.2);
+        }
+
+        .social-btn svg { width: 18px; height: 18px; fill: currentColor; }
+
+        /* Footer */
+        .auth-footer {
+            text-align: center; margin-top: 18px;
+            font-size: 18px; color: var(--brown-muted);
+        }
+
+        .auth-footer a {
+            color: var(--orange-light); text-decoration: none;
+            border-bottom: 2px solid var(--orange-dark);
+            transition: all 0.2s;
+        }
+
+        .auth-footer a:hover {
+            color: var(--orange-primary);
+            border-bottom-color: var(--orange-light);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 20px; right: 20px;
+            padding: 14px 20px;
+            background: var(--bg-card);
+            border: 3px solid var(--orange-primary);
+            box-shadow: var(--pixel-shadow);
+            color: var(--cream);
+            font-family: 'VT323', monospace;
+            font-size: 20px;
+            z-index: 1000;
+            transform: translateX(420px);
+            transition: transform 0.3s ease;
+            display: flex; align-items: center; gap: 10px;
+            text-transform: uppercase;
+            max-width: 320px;
+        }
+
+        .toast.show { transform: translateX(0); }
+        .toast.error { border-color: var(--red-devil); }
+        .toast.success { border-color: var(--orange-primary); }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .auth-card { padding: 20px; }
+            .logo-text  { font-size: 14px; }
+            .social-login { grid-template-columns: 1fr; }
+            .tab-btn { font-size: 8px; padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="pixel-bg"></div>
+    <div class="pixel-world" id="pixelWorld"></div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <span id="toastIcon">▶</span>
+        <span id="toastMessage">LEVEL COMPLETE!</span>
+    </div>
+
+    <div class="auth-container">
+
+        <!-- Logo Section -->
+        <div class="logo-section">
+            <div class="logo-devil"><span>😈</span></div>
+            <div class="logo-text">DON'T TROLL</div>
+            <div class="logo-sub">
+                <span class="not">NOT</span> a Troll Game
+            </div>
+            <div class="lives-display">
+                <div class="life-icon" style="--i:0"></div>
+                <div class="life-icon" style="--i:1"></div>
+                <div class="life-icon" style="--i:2"></div>
+                <span class="lives-text">x 3 LIVES</span>
+            </div>
+        </div>
+
+        <!-- Auth Card -->
+        <div class="auth-card">
+            <div class="corner corner-tl"></div>
+            <div class="corner corner-tr"></div>
+            <div class="corner corner-bl"></div>
+            <div class="corner corner-br"></div>
+            <div class="trap-decoration"></div>
+
+            <!-- Tab Switcher -->
+            <div class="tab-switcher">
+                <button class="tab-btn active" id="tab-login" onclick="switchTab('login')">LOGIN</button>
+                <button class="tab-btn" id="tab-signup" onclick="switchTab('signup')">NEW GAME</button>
+            </div>
+
+            <!-- Login Form -->
+            <div class="form-section active" id="loginForm">
+                <form onsubmit="handleLogin(event)" novalidate>
+                    <div class="form-group">
+                        <label class="form-label" for="loginUsername">► Player Name</label>
+                        <input type="text" class="form-input" id="loginUsername"
+                               placeholder="Enter username..." required autocomplete="username">
+                        <div class="field-error" id="loginUsernameErr">Username required</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="loginPassword">► Password</label>
+                        <input type="password" class="form-input" id="loginPassword"
+                               placeholder="••••••••••••" required autocomplete="current-password">
+                        <button type="button" class="password-toggle" onclick="togglePassword('loginPassword', this)">👁</button>
+                        <div class="field-error" id="loginPasswordErr">Password required</div>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="rememberMe">
+                        <label for="rememberMe">Remember Save Data</label>
+                    </div>
+                    <button type="submit" class="submit-btn" id="loginBtn">► START GAME</button>
+                </form>
+            </div>
+
+            <!-- Signup Form -->
+            <div class="form-section" id="signupForm">
+                <form onsubmit="handleSignup(event)" novalidate>
+                    <!-- XP Bar -->
+                    <div class="level-bar">
+                        <div class="level-icon">LV1</div>
+                        <div class="level-info">
+                            <div class="level-label">Beginner Trapster</div>
+                            <div class="level-progress">
+                                <div class="level-fill" id="levelFill"></div>
+                            </div>
+                            <div class="level-value" id="levelValue">0 / 100 XP</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="signupUsername">► Player Name</label>
+                        <input type="text" class="form-input" id="signupUsername"
+                               placeholder="Choose username..." required autocomplete="username">
+                        <div class="field-error" id="signupUsernameErr">Username required (3+ chars)</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="signupEmail">► Email</label>
+                        <input type="email" class="form-input" id="signupEmail"
+                               placeholder="player@donttroll.com" required autocomplete="email">
+                        <div class="field-error" id="signupEmailErr">Valid email required</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="signupPassword">► Password</label>
+                        <input type="password" class="form-input" id="signupPassword"
+                               placeholder="Min 8 characters..." required autocomplete="new-password"
+                               oninput="checkStrength(this.value)">
+                        <button type="button" class="password-toggle" onclick="togglePassword('signupPassword', this)">👁</button>
+                        <div class="field-error" id="signupPasswordErr">Min 8 characters required</div>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="termsAgree" required>
+                        <label for="termsAgree">I accept the <a href="#">Traps &amp; Tricks</a></label>
+                    </div>
+                    <button type="submit" class="submit-btn" id="signupBtn">► CREATE SAVE</button>
+                </form>
+            </div>
+
+            <!-- Divider -->
+            <div class="divider"> OR </div>
+
+            <!-- Social Buttons -->
+            <div class="social-login">
+                <button class="social-btn" onclick="socialAuth('github')" id="btn-github">
+                    <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.387.6.113.82-.258.82-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.5 11.5 0 0 1 12 6.8c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
+                    GitHub
+                </button>
+                <button class="social-btn" onclick="socialAuth('google')" id="btn-google">
+                    <svg viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                    Google
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="auth-footer">
+            <p id="footerText">New Player? <a href="#" onclick="switchTab('signup'); return false;">Insert Coin</a></p>
+            <p style="margin-top:12px;">
+                <a href="index.html" style="color:var(--brown-muted); border-bottom:2px solid var(--border-pixel); font-size:16px;">
+                    ► SKIP LOGIN &amp; PLAY AS GUEST
+                </a>
+            </p>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js').then((registration) => {
+            console.log('SW registered: ', registration);
+          }).catch((registrationError) => {
+            console.log('SW registration failed: ', registrationError);
+          });
+        });
+      }
+    </script>
+</body>
+</html>

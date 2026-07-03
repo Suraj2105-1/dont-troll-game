@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Level Builder - Don't Troll</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        body { background: #1a1a1a; display: flex; flex-direction: column; overflow: auto; padding: 20px; }
+        .builder-container { display: flex; gap: 20px; max-width: 1400px; margin: 0 auto; width: 100%; height: calc(100vh - 40px); }
+        .editor-side { flex: 2; display: flex; flex-direction: column; gap: 10px; }
+        .json-side { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+        
+        .canvas-wrapper { width: 100%; overflow-x: auto; overflow-y: hidden; background: #1a1a1a; border: 4px solid #5a3a00; border-radius: 4px; }
+        #builder-canvas { background: #E8B830; cursor: crosshair; image-rendering: pixelated; display: block; height: 500px; }
+        
+        .toolbar { display: flex; gap: 10px; flex-wrap: wrap; background: #2a1a0a; padding: 10px; border-radius: 8px; border: 2px solid #5a3a00; }
+        .tool-btn { background: #3a2a1a; color: #FFD700; border: 2px solid #5a3a00; padding: 8px 12px; font-family: 'Press Start 2P', monospace; font-size: 10px; cursor: pointer; border-radius: 4px; }
+        .tool-btn.active { background: #FFD700; color: #2a1a0a; }
+        
+        .props-panel { background: #2a1a0a; padding: 16px; border-radius: 8px; border: 2px solid #5a3a00; color: #ccc; font-size: 12px; font-family: monospace; display: none; }
+        .props-panel.active { display: block; }
+        .prop-row { margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        .prop-row input, .prop-row select { background: #111; color: #fff; border: 1px solid #555; padding: 4px; font-family: monospace; }
+        
+        #json-editor { flex: 1; background: #111; color: #0f0; font-family: monospace; font-size: 12px; padding: 10px; border: 2px solid #5a3a00; border-radius: 8px; resize: none; white-space: pre; }
+        
+        .action-row { display: flex; justify-content: space-between; }
+        
+        .back-btn { align-self: flex-start; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <button class="menu-btn small-btn back-btn" onclick="window.location.href='index.html'">⌂ BACK TO MENU</button>
+
+    <div class="builder-container">
+        
+        <!-- VISUAL EDITOR -->
+        <div class="editor-side">
+            <div class="toolbar" id="toolbar">
+                <button class="tool-btn active" data-tool="select">Cursor (Select/Move)</button>
+                <button class="tool-btn" data-tool="platform">Platform</button>
+                <button class="tool-btn" data-tool="spike">Spike</button>
+                <button class="tool-btn" data-tool="hidden_spike" style="color:#ffaa00">Hidden Spike</button>
+                <button class="tool-btn" data-tool="saw">Saw</button>
+                <button class="tool-btn" data-tool="coin">Coin</button>
+                <button class="tool-btn" data-tool="spring">Spring</button>
+                <button class="tool-btn" data-tool="door">Door (Exit)</button>
+                <button class="tool-btn" data-tool="start">Player Start</button>
+                <button class="tool-btn" data-tool="delete" style="color:#ff5555">Delete</button>
+            </div>
+            
+            <div class="canvas-wrapper">
+                <!-- Set width to 3200 for long scrolling levels -->
+                <canvas id="builder-canvas" width="3200" height="500"></canvas>
+            </div>
+            
+            <div class="props-panel" id="props-panel">
+                <div style="color:#FFD700; margin-bottom:10px;">PROPERTIES (<span id="prop-type">None</span>)</div>
+                <div id="prop-fields"></div>
+                <div style="margin-top: 10px; border-top: 1px solid #555; padding-top: 10px;">
+                    <div style="color:#ffaa00; margin-bottom:5px;">ADD TRAP (Troll effect)</div>
+                    <select id="trap-type">
+                        <option value="">None</option>
+                        <option value="disappear">Disappear on touch</option>
+                        <option value="ceiling_drop">Fall when stepped on</option>
+                        <option value="spike_rise">Hidden spike (rises)</option>
+                        <option value="door_move">Runaway Door</option>
+                    </select>
+                    <button class="tool-btn" style="padding: 4px;" onclick="applyTrap()">Apply Trap</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- JSON EDITOR -->
+        <div class="json-side">
+            <h2 style="color: #FFD700; font-size: 14px; margin: 0;">JSON LEVEL DATA</h2>
+            <textarea id="json-editor"></textarea>
+            <div class="action-row">
+                <button class="menu-btn small-btn" onclick="applyJson()">APPLY JSON 🔄</button>
+                <button class="menu-btn small-btn" onclick="testLevel()" style="background: #2E8B57;">TEST LEVEL ▶</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="renderer.js?v=2"></script>
+    <script src="builder.js?v=2"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js').then((registration) => {
+            console.log('SW registered: ', registration);
+          }).catch((registrationError) => {
+            console.log('SW registration failed: ', registrationError);
+          });
+        });
+      }
+    </script>
+</body>
+</html>

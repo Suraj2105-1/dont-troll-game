@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- SESSION GUARD: runs before anything else loads -->
+    <script>
+        (function() {
+            var user = sessionStorage.getItem('dt_user') || localStorage.getItem('dt_user');
+            if (!user) {
+                window.location.replace('login.html');
+            }
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Don't Troll - A Level Devil inspired troll platformer game with tricky levels">
+    <title>Don't Troll</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <div id="game-frame">
+        <canvas id="gameCanvas"></canvas>
+        <div id="ui-overlay">
+            <!-- Menu Screen -->
+            <div id="menu-screen" class="screen active">
+                <div class="menu-content">
+                    <h1 id="game-title">DON'T TROLL</h1>
+                    <div class="menu-buttons">
+                        <button id="btn-play" class="menu-btn" onclick="startGame()">PLAY</button>
+                        <button id="btn-levels" class="menu-btn" onclick="showLevelSelect()">LEVELS</button>
+                        <button id="btn-hell" class="menu-btn danger" onclick="showHellMenu()">HELL</button>
+                        <button id="btn-builder" class="menu-btn" style="color: #4CAF50;" onclick="window.location.href='builder.html'">BUILDER</button>
+                        <button id="btn-achievements" class="menu-btn" onclick="showAchievements()">BADGES</button>
+                        <button id="btn-settings" class="menu-btn" onclick="showSettings()">SETTINGS</button>
+                    </div>
+                </div>
+                <div class="menu-character"></div>
+            </div>
+
+            <!-- Level Select Screen (World Map like Level Devil) -->
+            <div id="level-select-screen" class="screen">
+                <h2 class="map-title">DON'T TROLL</h2>
+                <canvas id="mapCanvas"></canvas>
+                <div id="map-level-name" class="map-level-name"></div>
+                <button id="btn-back-menu" class="map-back-btn" onclick="showMenu()">✕</button>
+                <div id="map-arrow-right" class="map-arrow right" onclick="mapScrollRight()">❯</div>
+            </div>
+
+            <!-- Settings Screen -->
+            <div id="settings-screen" class="screen">
+                <h2 class="screen-title">SETTINGS</h2>
+                <div class="settings-panel">
+                    <div class="setting-row">
+                        <span class="setting-label">SOUND</span>
+                        <button id="btn-sound" class="setting-toggle" onclick="toggleSound()">ON</button>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">DIFFICULTY</span>
+                        <button id="btn-difficulty" class="setting-toggle" onclick="cycleDifficulty()">NORMAL</button>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">SCREEN SHAKE</span>
+                        <button id="btn-shake" class="setting-toggle" onclick="toggleShake()">ON</button>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">SHOW FPS</span>
+                        <button id="btn-fps" class="setting-toggle" onclick="toggleFPS()">OFF</button>
+                    </div>
+                    <div class="setting-divider"></div>
+                    <div class="setting-row">
+                        <span class="setting-label">RESET PROGRESS</span>
+                        <button id="btn-reset" class="setting-toggle danger" onclick="resetProgress()">RESET</button>
+                    </div>
+                </div>
+                <button id="btn-settings-back" class="menu-btn small-btn" onclick="showMenu()">BACK</button>
+            </div>
+
+            <!-- Hell Screen -->
+            <div id="hell-screen" class="screen">
+                <h2 class="screen-title danger-text" style="color: #FF2222; text-shadow: 4px 4px 0 #8B0000;">WELCOME TO HELL</h2>
+                <div class="hell-grid">
+                    <!-- Column 1: Leaderboard -->
+                    <div class="hell-leaderboard">
+                        <div class="leaderboard-tabs">
+                            <button class="tab-btn active" onclick="loadLeaderboard(0)">BEGINNER</button>
+                            <button class="tab-btn" onclick="loadLeaderboard(1)">PRO</button>
+                            <button class="tab-btn" onclick="loadLeaderboard(2)">HACKER</button>
+                        </div>
+                        <table id="leaderboard-table">
+                            <thead>
+                                <tr>
+                                    <th>RANK</th>
+                                    <th>PLAYER</th>
+                                    <th>TIME</th>
+                                    <th>DEATHS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboard-body">
+                                <tr><td colspan="4">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Column 2: Levels -->
+                    <div class="hell-levels">
+                        <h3>CHOOSE YOUR TORMENT</h3>
+                        <div class="hell-buttons">
+                            <button class="menu-btn hell-btn" onclick="startHellLevel(0)">BEGINNER</button>
+                            <button class="menu-btn hell-btn" onclick="startHellLevel(1)">PRO</button>
+                            <button class="menu-btn hell-btn" onclick="startHellLevel(2)">HACKER</button>
+                        </div>
+                    </div>
+                </div>
+                <button class="menu-btn small-btn" onclick="showMenu()" style="margin-top: 20px;">BACK TO SAFETY</button>
+            </div>
+
+            <!-- Death Screen -->
+            <div id="death-screen" class="screen">
+                <h2 class="death-text">YOU DIED</h2>
+                <p class="death-sub">The level trolled you...</p>
+                <button id="btn-retry" class="menu-btn" onclick="retryLevel()">RETRY</button>
+            </div>
+
+            <!-- Win Screen -->
+            <div id="win-screen" class="screen">
+                <h2 class="win-text">LEVEL CLEAR!</h2>
+                <div id="win-stars" class="win-stars"></div>
+                <p class="win-stat" id="win-deaths-stat"></p>
+                <p class="win-sub" id="win-message"></p>
+                <div class="win-buttons">
+                    <button id="btn-next" class="menu-btn" onclick="nextLevel()">NEXT ▶</button>
+                    <button id="btn-win-menu" class="menu-btn small-btn" onclick="showMenu()">MENU</button>
+                </div>
+            </div>
+
+            <!-- Game Complete Screen -->
+            <div id="complete-screen" class="screen">
+                <h2 class="win-text">YOU WIN!</h2>
+                <p class="win-sub">You survived all the trolls!</p>
+                <button id="btn-complete-menu" class="menu-btn" onclick="showMenu()">MENU</button>
+            </div>
+
+            <!-- Achievements Screen -->
+            <div id="achievements-screen" class="screen">
+                <h2 class="screen-title" style="color: #FFD700;">BADGES</h2>
+                <div id="ach-list" class="ach-list"></div>
+                <button class="menu-btn small-btn" onclick="showMenu()" style="margin-top: 20px;">BACK</button>
+            </div>
+        </div>
+
+        <!-- Touch Controls (Mobile & Desktop Fallback) -->
+        <div id="touch-controls" class="hidden">
+            <div class="touch-btn touch-left" 
+                 ontouchstart="handleTouch(event, 'left', true)" ontouchend="handleTouch(event, 'left', false)"
+                 onmousedown="handleTouch(event, 'left', true)" onmouseup="handleTouch(event, 'left', false)" onmouseleave="handleTouch(event, 'left', false)">◀</div>
+            <div class="touch-btn touch-right" 
+                 ontouchstart="handleTouch(event, 'right', true)" ontouchend="handleTouch(event, 'right', false)"
+                 onmousedown="handleTouch(event, 'right', true)" onmouseup="handleTouch(event, 'right', false)" onmouseleave="handleTouch(event, 'right', false)">▶</div>
+            <div class="touch-btn touch-jump" 
+                 ontouchstart="handleTouch(event, 'jump', true)" ontouchend="handleTouch(event, 'jump', false)"
+                 onmousedown="handleTouch(event, 'jump', true)" onmouseup="handleTouch(event, 'jump', false)" onmouseleave="handleTouch(event, 'jump', false)">▲</div>
+        </div>
+
+        <!-- HUD -->
+        <div id="game-hud" class="hidden">
+            <div id="hud-left">
+                <div id="hud-level">LEVEL <span id="hud-level-num">1</span></div>
+                <div id="hud-deaths">💀 <span id="hud-death-count">0</span></div>
+            </div>
+            <div id="hud-right">
+                <div id="hud-username"></div>
+                <div id="hud-stars"></div>
+            </div>
+        </div>
+
+        <!-- Pause Menu Overlay -->
+        <div id="pause-overlay" class="hidden">
+            <div id="pause-box">
+                <h2 id="pause-title">PAUSED</h2>
+                <button class="menu-btn" onclick="resumeGame()">▶ RESUME</button>
+                <button class="menu-btn" onclick="retryLevel()">↺ RETRY</button>
+                <button class="menu-btn small-btn" onclick="showMenu()">⌂ MENU</button>
+            </div>
+        </div>
+
+        <div id="pause-hint" class="hidden">ESC TO PAUSE</div>
+    </div>
+
+    <script src="achievements.js?v=2"></script>
+    <script src="sound.js?v=2"></script>
+    <script src="renderer.js?v=2"></script>
+    <script src="player.js?v=2"></script>
+    <script src="traps.js?v=2"></script>
+    <script src="levels.js?v=2"></script>
+    <script src="game.js?v=2"></script>
+    <script>
+      // Auto-start game if URL contains ?play=1
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('play')) {
+        // Wait for DOM ready and start game
+        document.addEventListener('DOMContentLoaded', () => {
+          startGame();
+        });
+        // Remove query param to clean URL
+        const newUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+      }
+    </script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js').then((registration) => {
+            console.log('SW registered: ', registration);
+          }).catch((registrationError) => {
+            console.log('SW registration failed: ', registrationError);
+          });
+        });
+      }
+    </script>
+</body>
+</html>
